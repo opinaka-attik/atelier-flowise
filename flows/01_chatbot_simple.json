@@ -1,0 +1,80 @@
+{
+  "nodes": [
+    {
+      "id": "chatGroq_0",
+      "position": { "x": 400, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "chatGroq_0",
+        "label": "ChatGroq",
+        "version": 2,
+        "name": "chatGroq",
+        "type": "ChatGroq",
+        "baseClasses": ["ChatGroq", "BaseChatModel", "BaseLanguageModel"],
+        "category": "Chat Models",
+        "description": "Wrapper autour du modèle Groq LLM",
+        "inputParams": [
+          { "label": "Connect Credential", "name": "credentialId", "type": "credential", "credentialNames": ["groqApi"] },
+          { "label": "Model Name", "name": "modelName", "type": "string", "default": "llama3-70b-8192" },
+          { "label": "Temperature", "name": "temperature", "type": "number", "default": 0.5 }
+        ],
+        "inputs": {
+          "modelName": "llama3-70b-8192",
+          "temperature": 0.5
+        },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "bufferMemory_0",
+      "position": { "x": 400, "y": 100 },
+      "type": "customNode",
+      "data": {
+        "id": "bufferMemory_0",
+        "label": "Buffer Memory",
+        "name": "bufferMemory",
+        "type": "BufferMemory",
+        "baseClasses": ["BufferMemory", "BaseChatMemory", "BaseMemory"],
+        "category": "Memory",
+        "description": "Mémorise toute la conversation dans un buffer",
+        "inputParams": [
+          { "label": "Memory Key", "name": "memoryKey", "type": "string", "default": "chat_history" },
+          { "label": "Input Key", "name": "inputKey", "type": "string", "default": "input" }
+        ],
+        "inputs": {
+          "memoryKey": "chat_history",
+          "inputKey": "input"
+        },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "conversationChain_0",
+      "position": { "x": 750, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "conversationChain_0",
+        "label": "Conversation Chain",
+        "name": "conversationChain",
+        "type": "ConversationChain",
+        "baseClasses": ["ConversationChain", "LLMChain", "BaseChain"],
+        "category": "Chains",
+        "description": "Chain de conversation avec mémoire",
+        "inputParams": [
+          { "label": "System Message", "name": "systemMessagePrompt", "type": "string", "rows": 4,
+            "default": "Tu es un assistant pédagogique bienveillant. Tu réponds toujours en français de manière claire et concise." }
+        ],
+        "inputs": {
+          "systemMessagePrompt": "Tu es un assistant pédagogique bienveillant. Tu réponds toujours en français de manière claire et concise.",
+          "model": "{{chatGroq_0.data.instance}}",
+          "memory": "{{bufferMemory_0.data.instance}}"
+        },
+        "outputs": {}
+      }
+    }
+  ],
+  "edges": [
+    { "source": "chatGroq_0", "sourceHandle": "chatGroq_0-output-chatGroq-ChatGroq|BaseChatModel|BaseLanguageModel", "target": "conversationChain_0", "targetHandle": "conversationChain_0-input-model-BaseChatModel", "id": "edge-1" },
+    { "source": "bufferMemory_0", "sourceHandle": "bufferMemory_0-output-bufferMemory-BufferMemory|BaseChatMemory|BaseMemory", "target": "conversationChain_0", "targetHandle": "conversationChain_0-input-memory-BaseMemory", "id": "edge-2" }
+  ]
+}

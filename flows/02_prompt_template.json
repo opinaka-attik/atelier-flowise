@@ -1,0 +1,72 @@
+{
+  "nodes": [
+    {
+      "id": "chatGroq_0",
+      "position": { "x": 300, "y": 400 },
+      "type": "customNode",
+      "data": {
+        "id": "chatGroq_0",
+        "label": "ChatGroq",
+        "name": "chatGroq",
+        "type": "ChatGroq",
+        "baseClasses": ["ChatGroq", "BaseChatModel"],
+        "category": "Chat Models",
+        "inputs": {
+          "modelName": "llama3-8b-8192",
+          "temperature": 0.7
+        },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "chatPromptTemplate_0",
+      "position": { "x": 300, "y": 150 },
+      "type": "customNode",
+      "data": {
+        "id": "chatPromptTemplate_0",
+        "label": "Chat Prompt Template",
+        "name": "chatPromptTemplate",
+        "type": "ChatPromptTemplate",
+        "baseClasses": ["ChatPromptTemplate", "BaseChatPromptTemplate"],
+        "category": "Prompts",
+        "description": "Template de prompt avec variables dynamiques",
+        "inputParams": [
+          { "label": "System Message", "name": "systemMessagePrompt", "type": "string", "rows": 4 },
+          { "label": "Human Message", "name": "humanMessagePrompt", "type": "string", "rows": 4 }
+        ],
+        "inputs": {
+          "systemMessagePrompt": "Tu es un expert en {domaine}. Tu réponds de manière professionnelle et précise en français.",
+          "humanMessagePrompt": "{question}"
+        },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "llmChain_0",
+      "position": { "x": 700, "y": 280 },
+      "type": "customNode",
+      "data": {
+        "id": "llmChain_0",
+        "label": "LLM Chain",
+        "name": "llmChain",
+        "type": "LLMChain",
+        "baseClasses": ["LLMChain", "BaseChain"],
+        "category": "Chains",
+        "description": "Chain LLM avec prompt template",
+        "inputParams": [
+          { "label": "Chain Name", "name": "chainName", "type": "string", "default": "Expert Advisor" }
+        ],
+        "inputs": {
+          "chainName": "Expert Advisor",
+          "model": "{{chatGroq_0.data.instance}}",
+          "prompt": "{{chatPromptTemplate_0.data.instance}}"
+        },
+        "outputs": {}
+      }
+    }
+  ],
+  "edges": [
+    { "source": "chatGroq_0", "sourceHandle": "chatGroq_0-output-chatGroq-ChatGroq|BaseChatModel", "target": "llmChain_0", "targetHandle": "llmChain_0-input-model-BaseChatModel", "id": "edge-1" },
+    { "source": "chatPromptTemplate_0", "sourceHandle": "chatPromptTemplate_0-output-chatPromptTemplate-ChatPromptTemplate", "target": "llmChain_0", "targetHandle": "llmChain_0-input-prompt-BaseChatPromptTemplate", "id": "edge-2" }
+  ]
+}

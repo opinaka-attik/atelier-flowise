@@ -1,0 +1,99 @@
+{
+  "nodes": [
+    {
+      "id": "chatGroq_0",
+      "position": { "x": 900, "y": 400 },
+      "type": "customNode",
+      "data": {
+        "id": "chatGroq_0",
+        "label": "ChatGroq",
+        "name": "chatGroq",
+        "type": "ChatGroq",
+        "baseClasses": ["ChatGroq", "BaseChatModel"],
+        "category": "Chat Models",
+        "inputs": { "modelName": "llama3-70b-8192", "temperature": 0.3 },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "inMemoryVectorStore_0",
+      "position": { "x": 600, "y": 400 },
+      "type": "customNode",
+      "data": {
+        "id": "inMemoryVectorStore_0",
+        "label": "In-Memory Vector Store",
+        "name": "memoryVectorStore",
+        "type": "MemoryVectorStore",
+        "baseClasses": ["MemoryVectorStore", "VectorStore"],
+        "category": "Vector Stores",
+        "description": "Stockage vectoriel en mémoire (pas de persistance)",
+        "inputs": {
+          "embeddings": "{{fakeEmbeddings_0.data.instance}}",
+          "document": "{{pdfFile_0.data.instance}}"
+        },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "fakeEmbeddings_0",
+      "position": { "x": 300, "y": 550 },
+      "type": "customNode",
+      "data": {
+        "id": "fakeEmbeddings_0",
+        "label": "Fake Embeddings",
+        "name": "fakeEmbeddings",
+        "type": "FakeEmbeddings",
+        "baseClasses": ["FakeEmbeddings", "Embeddings"],
+        "category": "Embeddings",
+        "description": "Embeddings de test (sans API externe) — remplacer par OpenAI/HuggingFace en prod",
+        "inputs": {},
+        "outputs": {}
+      }
+    },
+    {
+      "id": "pdfFile_0",
+      "position": { "x": 300, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "pdfFile_0",
+        "label": "PDF File",
+        "name": "pdfFile",
+        "type": "PDFLoader",
+        "baseClasses": ["PDFLoader", "BaseDocumentLoader", "BaseLoader"],
+        "category": "Document Loaders",
+        "description": "Charger un fichier PDF comme source de documents",
+        "inputParams": [
+          { "label": "PDF File", "name": "pdfFile", "type": "file", "fileType": ".pdf" },
+          { "label": "Usage", "name": "usage", "type": "options", "options": [{"label": "One document per page", "name": "perPage"}, {"label": "One document per file", "name": "perFile"}], "default": "perPage" }
+        ],
+        "inputs": { "usage": "perPage" },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "retrievalQAChain_0",
+      "position": { "x": 1200, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "retrievalQAChain_0",
+        "label": "Retrieval QA Chain",
+        "name": "retrievalQAChain",
+        "type": "RetrievalQAChain",
+        "baseClasses": ["RetrievalQAChain", "BaseChain"],
+        "category": "Chains",
+        "description": "Q&A sur documents via RAG",
+        "inputs": {
+          "model": "{{chatGroq_0.data.instance}}",
+          "vectorStore": "{{inMemoryVectorStore_0.data.instance}}"
+        },
+        "outputs": {}
+      }
+    }
+  ],
+  "edges": [
+    { "source": "chatGroq_0", "sourceHandle": "chatGroq_0-output-chatGroq-ChatGroq|BaseChatModel", "target": "retrievalQAChain_0", "targetHandle": "retrievalQAChain_0-input-model-BaseChatModel", "id": "edge-1" },
+    { "source": "inMemoryVectorStore_0", "sourceHandle": "inMemoryVectorStore_0-output-retriever-VectorStoreRetriever", "target": "retrievalQAChain_0", "targetHandle": "retrievalQAChain_0-input-vectorStore-BaseRetriever", "id": "edge-2" },
+    { "source": "fakeEmbeddings_0", "sourceHandle": "fakeEmbeddings_0-output-fakeEmbeddings-FakeEmbeddings|Embeddings", "target": "inMemoryVectorStore_0", "targetHandle": "inMemoryVectorStore_0-input-embeddings-Embeddings", "id": "edge-3" },
+    { "source": "pdfFile_0", "sourceHandle": "pdfFile_0-output-document-Document", "target": "inMemoryVectorStore_0", "targetHandle": "inMemoryVectorStore_0-input-document-Document", "id": "edge-4" }
+  ]
+}

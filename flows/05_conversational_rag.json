@@ -1,0 +1,124 @@
+{
+  "nodes": [
+    {
+      "id": "chatGroq_0",
+      "position": { "x": 900, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "chatGroq_0",
+        "label": "ChatGroq",
+        "name": "chatGroq",
+        "type": "ChatGroq",
+        "baseClasses": ["ChatGroq", "BaseChatModel"],
+        "category": "Chat Models",
+        "inputs": { "modelName": "llama3-70b-8192", "temperature": 0.3 },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "inMemoryVectorStore_0",
+      "position": { "x": 600, "y": 350 },
+      "type": "customNode",
+      "data": {
+        "id": "inMemoryVectorStore_0",
+        "label": "In-Memory Vector Store",
+        "name": "memoryVectorStore",
+        "type": "MemoryVectorStore",
+        "baseClasses": ["MemoryVectorStore", "VectorStore"],
+        "category": "Vector Stores",
+        "inputs": {
+          "embeddings": "{{fakeEmbeddings_0.data.instance}}",
+          "document": "{{textFile_0.data.instance}}"
+        },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "fakeEmbeddings_0",
+      "position": { "x": 300, "y": 500 },
+      "type": "customNode",
+      "data": {
+        "id": "fakeEmbeddings_0",
+        "label": "Fake Embeddings",
+        "name": "fakeEmbeddings",
+        "type": "FakeEmbeddings",
+        "baseClasses": ["FakeEmbeddings", "Embeddings"],
+        "category": "Embeddings",
+        "inputs": {},
+        "outputs": {}
+      }
+    },
+    {
+      "id": "textFile_0",
+      "position": { "x": 300, "y": 300 },
+      "type": "customNode",
+      "data": {
+        "id": "textFile_0",
+        "label": "Text File",
+        "name": "textFile",
+        "type": "TextLoader",
+        "baseClasses": ["TextLoader", "BaseDocumentLoader"],
+        "category": "Document Loaders",
+        "description": "Charger un fichier texte comme base de connaissance",
+        "inputParams": [
+          { "label": "Txt File", "name": "txtFile", "type": "file", "fileType": ".txt" }
+        ],
+        "inputs": {},
+        "outputs": {}
+      }
+    },
+    {
+      "id": "bufferWindowMemory_0",
+      "position": { "x": 900, "y": 500 },
+      "type": "customNode",
+      "data": {
+        "id": "bufferWindowMemory_0",
+        "label": "Buffer Window Memory",
+        "name": "bufferWindowMemory",
+        "type": "BufferWindowMemory",
+        "baseClasses": ["BufferWindowMemory", "BaseChatMemory"],
+        "category": "Memory",
+        "description": "Mémoire glissante sur les K derniers échanges",
+        "inputParams": [
+          { "label": "Size", "name": "k", "type": "number", "default": 4 }
+        ],
+        "inputs": { "k": 4, "memoryKey": "chat_history" },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "conversationalRetrievalQAChain_0",
+      "position": { "x": 1250, "y": 350 },
+      "type": "customNode",
+      "data": {
+        "id": "conversationalRetrievalQAChain_0",
+        "label": "Conversational Retrieval QA Chain",
+        "name": "conversationalRetrievalQAChain",
+        "type": "ConversationalRetrievalQAChain",
+        "baseClasses": ["ConversationalRetrievalQAChain", "BaseChain"],
+        "category": "Chains",
+        "description": "RAG conversationnel avec mémoire des échanges précédents",
+        "inputParams": [
+          { "label": "Return Source Documents", "name": "returnSourceDocuments", "type": "boolean", "default": true },
+          { "label": "System Message", "name": "systemMessagePrompt", "type": "string", "rows": 4,
+            "default": "Tu es un assistant expert. Utilise uniquement les documents fournis pour répondre. Si la réponse n'est pas dans les documents, dis-le clairement. Réponds en français." }
+        ],
+        "inputs": {
+          "returnSourceDocuments": true,
+          "systemMessagePrompt": "Tu es un assistant expert. Utilise uniquement les documents fournis pour répondre. Si la réponse n'est pas dans les documents, dis-le clairement. Réponds en français.",
+          "model": "{{chatGroq_0.data.instance}}",
+          "vectorStore": "{{inMemoryVectorStore_0.data.instance}}",
+          "memory": "{{bufferWindowMemory_0.data.instance}}"
+        },
+        "outputs": {}
+      }
+    }
+  ],
+  "edges": [
+    { "source": "chatGroq_0", "target": "conversationalRetrievalQAChain_0", "targetHandle": "conversationalRetrievalQAChain_0-input-model-BaseChatModel", "id": "edge-1" },
+    { "source": "inMemoryVectorStore_0", "sourceHandle": "inMemoryVectorStore_0-output-retriever-VectorStoreRetriever", "target": "conversationalRetrievalQAChain_0", "targetHandle": "conversationalRetrievalQAChain_0-input-vectorStore-BaseRetriever", "id": "edge-2" },
+    { "source": "fakeEmbeddings_0", "target": "inMemoryVectorStore_0", "targetHandle": "inMemoryVectorStore_0-input-embeddings-Embeddings", "id": "edge-3" },
+    { "source": "textFile_0", "target": "inMemoryVectorStore_0", "targetHandle": "inMemoryVectorStore_0-input-document-Document", "id": "edge-4" },
+    { "source": "bufferWindowMemory_0", "target": "conversationalRetrievalQAChain_0", "targetHandle": "conversationalRetrievalQAChain_0-input-memory-BaseMemory", "id": "edge-5" }
+  ]
+}

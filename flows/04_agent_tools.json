@@ -1,0 +1,102 @@
+{
+  "nodes": [
+    {
+      "id": "chatGroq_0",
+      "position": { "x": 300, "y": 200 },
+      "type": "customNode",
+      "data": {
+        "id": "chatGroq_0",
+        "label": "ChatGroq",
+        "name": "chatGroq",
+        "type": "ChatGroq",
+        "baseClasses": ["ChatGroq", "BaseChatModel"],
+        "category": "Chat Models",
+        "inputs": { "modelName": "mixtral-8x7b-32768", "temperature": 0.3 },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "calculator_0",
+      "position": { "x": 300, "y": 400 },
+      "type": "customNode",
+      "data": {
+        "id": "calculator_0",
+        "label": "Calculator",
+        "name": "calculator",
+        "type": "Calculator",
+        "baseClasses": ["Calculator", "Tool", "StructuredTool"],
+        "category": "Tools",
+        "description": "Outil de calcul mathématique",
+        "inputs": {},
+        "outputs": {}
+      }
+    },
+    {
+      "id": "serpAPI_0",
+      "position": { "x": 300, "y": 580 },
+      "type": "customNode",
+      "data": {
+        "id": "serpAPI_0",
+        "label": "SearchApi",
+        "name": "searchApi",
+        "type": "SearchAPI",
+        "baseClasses": ["SearchAPI", "Tool"],
+        "category": "Tools",
+        "description": "Recherche web via SearchAPI (clé API requise)",
+        "inputParams": [
+          { "label": "Connect Credential", "name": "credentialId", "type": "credential", "credentialNames": ["searchApi"] }
+        ],
+        "inputs": {},
+        "outputs": {}
+      }
+    },
+    {
+      "id": "bufferMemory_0",
+      "position": { "x": 300, "y": 760 },
+      "type": "customNode",
+      "data": {
+        "id": "bufferMemory_0",
+        "label": "Buffer Memory",
+        "name": "bufferMemory",
+        "type": "BufferMemory",
+        "baseClasses": ["BufferMemory", "BaseChatMemory"],
+        "category": "Memory",
+        "inputs": { "memoryKey": "chat_history", "inputKey": "input" },
+        "outputs": {}
+      }
+    },
+    {
+      "id": "mrklAgentChat_0",
+      "position": { "x": 800, "y": 450 },
+      "type": "customNode",
+      "data": {
+        "id": "mrklAgentChat_0",
+        "label": "ReAct Agent",
+        "name": "mrklAgentChat",
+        "type": "AgentExecutor",
+        "baseClasses": ["AgentExecutor", "BaseChain"],
+        "category": "Agents",
+        "description": "Agent ReAct avec accès aux outils",
+        "inputParams": [
+          { "label": "System Message", "name": "systemMessage", "type": "string", "rows": 4,
+            "default": "Tu es un assistant intelligent. Utilise les outils disponibles pour répondre précisément. Réponds toujours en français." },
+          { "label": "Max Iterations", "name": "maxIterations", "type": "number", "default": 5 }
+        ],
+        "inputs": {
+          "systemMessage": "Tu es un assistant intelligent. Utilise les outils disponibles pour répondre précisément. Réponds toujours en français.",
+          "maxIterations": 5,
+          "model": "{{chatGroq_0.data.instance}}",
+          "tools": ["{{calculator_0.data.instance}}", "{{serpAPI_0.data.instance}}"],
+          "memory": "{{bufferMemory_0.data.instance}}"
+        },
+        "outputs": {}
+      }
+    }
+  ],
+  "edges": [
+    { "source": "chatGroq_0", "sourceHandle": "chatGroq_0-output-chatGroq-ChatGroq|BaseChatModel", "target": "mrklAgentChat_0", "targetHandle": "mrklAgentChat_0-input-model-BaseChatModel", "id": "edge-1" },
+    { "source": "calculator_0", "sourceHandle": "calculator_0-output-calculator-Calculator|Tool", "target": "mrklAgentChat_0", "targetHandle": "mrklAgentChat_0-input-tools-Tool", "id": "edge-2" },
+    { "source": "serpAPI_0", "sourceHandle": "serpAPI_0-output-searchApi-SearchAPI|Tool", "target": "mrklAgentChat_0", "targetHandle": "mrklAgentChat_0-input-tools-Tool", "id": "edge-3" },
+    { "source": "bufferMemory_0", "sourceHandle": "bufferMemory_0-output-bufferMemory-BufferMemory|BaseChatMemory", "target": "mrklAgentChat_0", "targetHandle": "mrklAgentChat_0-input-memory-BaseMemory", "id": "edge-4" }
+  ]
+}

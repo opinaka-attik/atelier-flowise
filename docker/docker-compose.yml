@@ -1,0 +1,28 @@
+# ============================================================
+# Flowise — Docker Compose
+# Usage : docker compose up -d
+# Interface : http://localhost:3001
+# ============================================================
+
+services:
+  flowise:
+    image: flowiseai/flowise:latest
+    container_name: flowise
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - FLOWISE_USERNAME=admin
+      - FLOWISE_PASSWORD=admin123
+      - APIKEY_PATH=/root/.flowise
+      - SECRETKEY_PATH=/root/.flowise
+      - LOG_LEVEL=info
+      - DATABASE_PATH=/root/.flowise
+      - BLOB_STORAGE_PATH=/root/.flowise/storage
+    volumes:
+      - flowise_data:/root/.flowise
+    entrypoint: /bin/sh -c "sleep 3 && flowise start"
+
+volumes:
+  flowise_data:
